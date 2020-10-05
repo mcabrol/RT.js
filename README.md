@@ -1,7 +1,7 @@
 # RT.js
 Small path tracer engine on GPU via gpujs
 
-# Sources
+## Sources
 
 | vector.js       | DataType                 |
 |-----------------|--------------------------|
