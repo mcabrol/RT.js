@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 	<style>
-		body, html {height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden}
+		body, html {height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden;}
 		.bg-black {background-color: black;}
 		.text-black {color: black}
 	</style>
@@ -17,8 +17,12 @@
   <body>
 
 	<div class="fixed-top p-3 text-black">
-		<h1 id="size"></h1>
-		<h1 id="fps"></h1>
+			<h1 class="m-0" id="size"></h1>
+			<h3 class="m-0" id="fps"></h3>
+	</div>
+
+	<div class="fixed-bottom text-right p-3 text-black">
+			<button class="btn" onclick="toggleAnimation()"><h1 class="m-0" id="statusAnimation">Stop</h1></button>
 	</div>
 
 	<canvas id="renderZone"></canvas>
@@ -40,6 +44,7 @@
   	let delta;
 	let width = window.innerWidth;
 	let height = window.innerHeight;
+	let animation = true;
 
 	function addFunctions(gpu, f){
 		f.forEach((item) => {
@@ -52,15 +57,40 @@
    		lastCalledTime = Date.now();
    		fps = 1 / delta;
 		fpsNumber.empty();
-   		fpsNumber.append(fps.toFixed(0) + " fps");
+   		fpsNumber.append("fps " + fps.toFixed(0));
 	}
 
 	function pathtracer() {
 		let x = this.thread.x;
 	    let y = this.thread.y;
+		let samples = this.constants.samples;
+		let camera_fov = this.constants.camera_fov;
+		// let camera_direction = this.constants.camera_direction;
+		let w_width = this.constants.w_width;
+		let w_height = this.constants.w_height;
 
+		var up = [0, 1, 0];
+		var camera_direction = [0, 0, -1];
+		var half_width = Math.tan(camera_fov);
+		var half_height = (w_width / w_height) * half_width;
 
-		this.color(255 / i - j, 255 / j, 255 / i + j + j);
+		var horizontal = vector_cross(camera_direction, up);
+
+		let accucolor = [0, 0, 0];
+
+		for (let i = 0; i < this.constants.samples; i++) {
+			// Prepare ray
+			let u1 = 2 * erand();
+			let u2 = 2 * erand();
+			let dx = (u1 < 1) ? (Math.sqrt(u1) - 1) : (1 - Math.sqrt(2 - u1));
+			let dy = (u2 < 1) ? (Math.sqrt(u2) - 1) : (1 - Math.sqrt(2 - u2));
+
+			// Radiance
+
+			// Divide by samples
+		}
+
+		this.color(Math.random(), Math.random(), Math.random());
 	};
 
 	function render() {
@@ -79,7 +109,14 @@
 
 		const kernel = gpu.createKernel(pathtracer)
 		  // .setDebug(true)
-		  .setConstants({ width, height })
+		  .setConstants({
+			  "samples": 8,
+			  "w_width": width,
+			  "w_height": height,
+			  "camera_position": [0, 0, 0],
+			  "camera_direction": [0, 0, -1],
+			  "camera_fov": degreeToRadian(30)
+		  })
 		  .setOutput([width, height])
 		  .setGraphical(true)
 		  .setLoopMaxIterations(10000);
@@ -90,9 +127,13 @@
 
 	function draw() {
 	  render();
-	  requestAnimationFrame(draw);
-	  framePerSecond();
+	  if (animation) {
+		  requestAnimationFrame(draw);
+		  framePerSecond();
+	  }
 	}
+
+	
 
 	$(document).ready(function(){
 	    requestAnimationFrame(draw);
