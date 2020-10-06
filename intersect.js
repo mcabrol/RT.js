@@ -1,8 +1,18 @@
-function intersect(ray_direction, ray_origin, id) {
-	let s = vector_substract(ray_direction, ray_origin);
-	return (-1);
+function intersect(ray_direction, ray_origin, sphere_position, sphere_radius) {
+	var tmax = 1e20;
+	var distance = intersect_sphere(ray_direction, ray_origin, sphere_position, sphere_radius);
+		return (distance);
 };
 
+function intersect_sphere(ray_direction, ray_origin, sphere_position, sphere_radius)
+{
+	var oc = vector_substract(ray_origin, sphere_position);
+	var k = [vector_dot(ray_direction, ray_direction), 2 * vector_dot(oc, ray_direction), vector_dot(oc, oc) - sphere_radius * sphere_radius];
+	var tmin = quadratic(k[0], k[1], k[2]);
+	return (tmin);
+}
+
 let intersect_functions = [
-	intersect
+	intersect,
+	intersect_sphere
 ];

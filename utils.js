@@ -15,3 +15,17 @@ function toggleAnimation() {
 		requestAnimationFrame(draw);
 	}
 }
+
+function addFunctions(gpu, f){
+	f.forEach((item) => {
+		gpu.addFunction(item);
+	});
+}
+
+function framePerSecond() {
+	delta = (Date.now() - lastCalledTime) / 1000;
+	lastCalledTime = Date.now();
+	fps = 1 / delta;
+	fpsNumber.empty();
+	fpsNumber.append("fps " + fps.toFixed(0));
+}
