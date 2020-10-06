@@ -36,6 +36,7 @@
 
 	<script src="dist/gpu-browser.js"></script>
 	<script src="vector.js"></script>
+	<script src="intersect.js"></script>
 	<script src="utils.js"></script>
 	<script>
 	const fpsNumber = $("#fps");
@@ -44,7 +45,7 @@
   	let delta;
 	let width = window.innerWidth;
 	let height = window.innerHeight;
-	let animation = true;
+	let animation = false;
 
 	function addFunctions(gpu, f){
 		f.forEach((item) => {
@@ -65,27 +66,51 @@
 	    let y = this.thread.y;
 		let samples = this.constants.samples;
 		let camera_fov = this.constants.camera_fov;
-		// let camera_direction = this.constants.camera_direction;
 		let w_width = this.constants.w_width;
 		let w_height = this.constants.w_height;
+		let distance_max = this.constants.distance_max;
+		let type = this.constants.scene["type"];
 
-		var up = [0, 1, 0];
-		var camera_direction = [0, 0, -1];
-		var half_width = Math.tan(camera_fov);
-		var half_height = (w_width / w_height) * half_width;
+		// Build camera
+		let up = [0, 1, 0];
+		let camera_direction = [0, 0, -1];
+		let camera_position = [0, 0, 0];
+		let half_width = Math.tan(camera_fov);
+		let half_height = (w_width / w_height) * half_width;
 
-		var horizontal = vector_cross(camera_direction, up);
+		let horizontal = vector_normalize(vector_cross(camera_direction, up));
+		let vertical = vector_minus(vector_normalize(vector_cross(horizontal, camera_direction)));
+		let point = vector_normalize(vector_add(camera_position, camera_direction));
+		point = vector_substract(point, vector_multi_n(vertical, half_width));
+		point = vector_substract(point, vector_multi_n(horizontal, half_height));
 
+		let cx = vector_divide_n(vector_multi_n(horizontal, 2 * half_height), w_width);
+		let cy = vector_divide_n(vector_multi_n(vertical, 2 * half_width), w_height);
+
+		// Pathtracer
 		let accucolor = [0, 0, 0];
-
 		for (let i = 0; i < this.constants.samples; i++) {
 			// Prepare ray
 			let u1 = 2 * erand();
 			let u2 = 2 * erand();
 			let dx = (u1 < 1) ? (Math.sqrt(u1) - 1) : (1 - Math.sqrt(2 - u1));
 			let dy = (u2 < 1) ? (Math.sqrt(u2) - 1) : (1 - Math.sqrt(2 - u2));
+			let ab = vector_add(vector_multi_n(cx, (dx + x)), vector_multi_n(cy, (dy + y)));
+			let ray_direction = vector_normalize(vector_substract(vector_add(point, ab), camera_position));
+			let ray_origin = camera_position;
 
 			// Radiance
+			let ray_blank = [0.0, 0.0, 0.0];
+			let ray_mask = [1.0, 1.0, 1.0];
+
+			let id = -1;
+			let hit = false;
+			let distance = distance_max;
+			while (true) {
+				if (intersect(ray_direction, ray_origin, id) < 0) {
+					this.color(0, 0, 0);
+				}
+			}
 
 			// Divide by samples
 		}
@@ -105,7 +130,8 @@
 			canvas: document.getElementById('renderZone')
 		});
 
-		addFunctions(gpu, kernel_functions);
+		addFunctions(gpu, vector_functions);
+		addFunctions(gpu, intersect_functions);
 
 		const kernel = gpu.createKernel(pathtracer)
 		  // .setDebug(true)
@@ -113,9 +139,9 @@
 			  "samples": 8,
 			  "w_width": width,
 			  "w_height": height,
-			  "camera_position": [0, 0, 0],
-			  "camera_direction": [0, 0, -1],
-			  "camera_fov": degreeToRadian(30)
+			  "camera_fov": degreeToRadian(30),
+			  "distance_max": 1e20,
+			  "scene": scene
 		  })
 		  .setOutput([width, height])
 		  .setGraphical(true)
@@ -133,11 +159,10 @@
 	  }
 	}
 
-	
-
 	$(document).ready(function(){
 	    requestAnimationFrame(draw);
 		framePerSecond();
+
 	});
 
 
