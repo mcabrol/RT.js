@@ -73,7 +73,7 @@
 		const kernel = gpu.createKernel(pathtracer)
 		  // .setDebug(true)
 		  .setConstants({
-			  "samples": 6,
+			  "samples": 8,
 			  "w_width": width,
 			  "w_height": height,
 			  "camera_fov": degreeToRadian(60),
@@ -90,7 +90,7 @@
 	}
 
 	function draw() {
-	  const f = render();
+	  render();
 	  if (animation) {
 		  requestAnimationFrame(draw);
 		  framePerSecond();

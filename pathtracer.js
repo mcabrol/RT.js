@@ -5,6 +5,8 @@ function pathtracer() {
 	let camera_fov = this.constants.camera_fov;
 	let w_width = this.constants.w_width;
 	let w_height = this.constants.w_height;
+	let distance_max = this.constants.distance_max;
+	let distance_min = this.constants.distance_min;
 
 	//----------------//
 	//	Build Camera  //
@@ -29,9 +31,9 @@ function pathtracer() {
 
 	let sphere_position = [0, 0, -10];
 	let sphere_direction = [0, 1, 0];
-	let sphere_radius = 3;
-	let sphere_emission = [1, 1, 1];
-	let sphere_color = [0.99, 0.99, 0.99];
+	let sphere_radius = 14;
+	let sphere_emission = [12, 12, 12];
+	let sphere_color = [0.0, 0.0, 0.0];
 
 	//--------------//
 	//	Pathtracer  //
@@ -58,23 +60,32 @@ function pathtracer() {
 		var ray_blank = [0, 0, 0];
 		var ray_mask = [1, 1, 1];
 		var ray_color = [0, 0, 0];
+		var ray_light = [0, 0, 0];
 
 
 		// Intersect
 
 		while (true) {
-			let ray_distance = intersect(ray_direction, ray_origin, sphere_position, sphere_radius);
-			if (ray_distance) {
-				log(ray_distance);
-				
+			let ray_distance = intersect_sphere(ray_direction, ray_origin, sphere_position, sphere_radius);
+			if (ray_distance >= distance_min && ray_distance < distance_max) {
 				ray_color = [0, 0, 0];
 				break ;
+			} else {
+				ray_color = [255, 0, 0];
+				break;
 			}
-			let eval = vector_eval(ray_direction, ray_origin, ray_distance);
-			let n = normal_sphere(eval, sphere_position);
 
-			ray_blank = vector_add(ray_blank, vector_multi(ray_mask, sphere_emission));
-			ray_mask = vector_multi(ray_mask, sphere_color);
+			// Evalutate
+			let eval = vector_eval(ray_direction, ray_origin, ray_distance);
+			let normal = normal_sphere(eval, sphere_position);
+
+			// Light
+			var ray_light = vector_multi(ray_mask, sphere_emission);
+			ray_color = vector_add(ray_color, ray_light);
+
+			// Texture
+			ray_mask = vector_multi(sphere_color, sphere_color);
+
 
 			let continue_probability = vector_max(sphere_color);
 			if (4 < ray_depth) {
@@ -84,8 +95,10 @@ function pathtracer() {
 				}
 				ray_mask = vector_divide_n(ray_mask, continue_probability);
 			}
+
+			// Reflect
 			ray_origin = eval;
-			ray_direction = specular_reflect(ray_direction, n);
+			ray_direction = specular_reflect(ray_direction, normal);
 			ray_depth++;
 		}
 
@@ -93,15 +106,15 @@ function pathtracer() {
 		accucolor = vector_add(accucolor, vector_divide_n(ray_color, samples));
 	}
 
-	var ray_color = vector_multi_n(vector_clamp(accucolor, 0, 1), 0.25);
+	var result = vector_multi_n(vector_clamp(accucolor, 0, 1), 0.25);
 
-	if (ray_color[0] == 0 && ray_color[1] == 0 && ray_color[2] == 0) {
-		this.color(Math.random(), Math.random(), Math.random());
-	}
-	else {
-		this.color(gamma(ray_color[0], 255), gamma(ray_color[1], 255), gamma(ray_color[2], 255), 1);
+	// if (result[0] == 0 && result[1] == 0 && result[2] == 0) {
+	// 	this.color(Math.random(), Math.random(), Math.random());
+	// }
+	// else {
+		this.color(gamma(result[0], 255), gamma(result[1], 255), gamma(result[2], 255), 1);
 		// this.color(255, 255, 255);
-	}
+	// }
 
 
 };

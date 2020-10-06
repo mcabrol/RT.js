@@ -1,7 +1,11 @@
 function intersect(ray_direction, ray_origin, sphere_position, sphere_radius) {
 	var tmax = 1e20;
 	var distance = intersect_sphere(ray_direction, ray_origin, sphere_position, sphere_radius);
+	if (distance >= 0.01 && distance < tmax) {
 		return (distance);
+	} else {
+		return (0);
+	}
 };
 
 function intersect_sphere(ray_direction, ray_origin, sphere_position, sphere_radius)
