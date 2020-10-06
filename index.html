@@ -18,10 +18,10 @@
 
 	<div class="fixed-top p-3 text-black">
 		<h1 id="size"></h1>
-		<h1 id="console"></h1>
+		<h1 id="fps"></h1>
 	</div>
 
-	<div id="renderZone"></div>
+	<canvas id="renderZone"></canvas>
 
 
     <!-- Optional JavaScript -->
@@ -34,6 +34,12 @@
 	<script src="vector.js"></script>
 	<script src="utils.js"></script>
 	<script>
+	const fpsNumber = $("#fps");
+	let lastCalledTime = Date.now();
+  	let fps;
+  	let delta;
+	let width = window.innerWidth;
+	let height = window.innerHeight;
 
 	function addFunctions(gpu, f){
 		f.forEach((item) => {
@@ -41,37 +47,56 @@
 		});
 	}
 
-	function update_render() {
+	function framePerSecond() {
+		delta = (Date.now() - lastCalledTime) / 1000;
+   		lastCalledTime = Date.now();
+   		fps = 1 / delta;
+		fpsNumber.empty();
+   		fpsNumber.append(fps.toFixed(0) + " fps");
+	}
+
+	function pathtracer() {
+		let x = this.thread.x;
+	    let y = this.thread.y;
+
+
+		this.color(255 / i - j, 255 / j, 255 / i + j + j);
+	};
+
+	function render() {
 		var width = window.innerWidth;
 		var height = window.innerHeight;
 
-		const gpu = new GPU();
-
-
-		addFunctions(gpu, kernel_functions);
-		console.log(gpu);
-
-		var gpuKernel = gpu.createKernel(function() {
-    		return (this.thread.x + this.thread.y);
-		}).setOutput([width * height]);
-
-		var result = gpuKernel();
-		console.log(result);
-
-		// const canvas = render.getCanvas();
-
-		// $('#renderZone').empty();
-		// $('#renderZone').append(canvas);
-
 		$("#size").empty();
 		$("#size").append(width + "x" + height);
+
+		const gpu = new GPU({
+			mode: "gpu",
+			canvas: document.getElementById('renderZone')
+		});
+
+		addFunctions(gpu, kernel_functions);
+
+		const kernel = gpu.createKernel(pathtracer)
+		  // .setDebug(true)
+		  .setConstants({ width, height })
+		  .setOutput([width, height])
+		  .setGraphical(true)
+		  .setLoopMaxIterations(10000);
+
+		 kernel();
+		 gpu.destroy();
+	}
+
+	function draw() {
+	  render();
+	  requestAnimationFrame(draw);
+	  framePerSecond();
 	}
 
 	$(document).ready(function(){
-		update_render();
-		$(window).on("resize", function(){
-			update_render();
-		});
+	    requestAnimationFrame(draw);
+		framePerSecond();
 	});
 
 
