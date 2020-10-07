@@ -29,11 +29,16 @@ function pathtracer() {
 
 	//
 
+	// let sphere = [
+	// 		sphere_position : sphere_position = [0, 0, -10],
+	// 		sphere_direction = [0, 1, 0]
+	// ];
+
 	let sphere_position = [0, 0, -10];
 	let sphere_direction = [0, 1, 0];
 	let sphere_radius = 14;
 	let sphere_emission = [12, 12, 12];
-	let sphere_color = [0.0, 0.0, 0.0];
+	let sphere_color = [0.6, 0.7, 0.6];
 
 	//--------------//
 	//	Pathtracer  //
@@ -68,37 +73,38 @@ function pathtracer() {
 		while (true) {
 			let ray_distance = intersect_sphere(ray_direction, ray_origin, sphere_position, sphere_radius);
 			if (ray_distance >= distance_min && ray_distance < distance_max) {
-				ray_color = [0, 0, 0];
+				ray_color = [ray_blank[0], ray_blank[1], ray_blank[2]];
 				break ;
-			} else {
-				ray_color = [255, 0, 0];
-				break;
 			}
-
 			// Evalutate
 			let eval = vector_eval(ray_direction, ray_origin, ray_distance);
 			let normal = normal_sphere(eval, sphere_position);
 
 			// Light
 			var ray_light = vector_multi(ray_mask, sphere_emission);
-			ray_color = vector_add(ray_color, ray_light);
+			ray_blank = vector_add(ray_blank, ray_light);
 
 			// Texture
-			ray_mask = vector_multi(sphere_color, sphere_color);
+			ray_mask = vector_multi(ray_mask, sphere_color);
 
 
 			let continue_probability = vector_max(sphere_color);
 			if (4 < ray_depth) {
 				if (erand() >= continue_probability) {
-					ray_color = [0, 0, 0];
+					ray_color = [ray_blank[0], ray_blank[1], ray_blank[2]];
 					break ;
 				}
 				ray_mask = vector_divide_n(ray_mask, continue_probability);
 			}
 
-			// Reflect
+			// Reflect specular
+			// ray_origin = eval;
+			// ray_direction = specular_reflect(ray_direction, normal);
+			// ray_depth++;
+
+			// Reflect diffuse
 			ray_origin = eval;
-			ray_direction = specular_reflect(ray_direction, normal);
+			diffuse_reflect(ray_direction, normal);
 			ray_depth++;
 		}
 
@@ -106,15 +112,8 @@ function pathtracer() {
 		accucolor = vector_add(accucolor, vector_divide_n(ray_color, samples));
 	}
 
-	var result = vector_multi_n(vector_clamp(accucolor, 0, 1), 0.25);
-
-	// if (result[0] == 0 && result[1] == 0 && result[2] == 0) {
-	// 	this.color(Math.random(), Math.random(), Math.random());
-	// }
-	// else {
-		this.color(gamma(result[0], 255), gamma(result[1], 255), gamma(result[2], 255), 1);
-		// this.color(255, 255, 255);
-	// }
+	var result = vector_multi_n(vector_clamp(accucolor, 0, 1), 0.2);
+	this.color(gamma(result[0]), gamma(result[1]), gamma(result[2]), 1);
 
 
 };

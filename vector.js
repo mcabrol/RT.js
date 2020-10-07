@@ -103,8 +103,8 @@ function degreeToRadian(degree) {
 	return (degree * Math.PI / 180)
 }
 
-function gamma(x, i) {
-	return (single_clamp(255 * Math.pow(x, 1 / i), 0, 255));
+function gamma(x) {
+	return (single_clamp(255 * Math.pow(x, 1 / 2.2), 0, 255));
 }
 
 let vector_functions = [
