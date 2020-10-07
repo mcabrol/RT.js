@@ -4,8 +4,8 @@
 // 	norm(&ray->n);
 // }
 
-function normal_sphere(a, sphere_position) {
-	return (vector_normalize(vector_substract(a, sphere_position)));
+function normal_sphere(eval, sphere_position) {
+	return (vector_normalize(vector_substract(eval, sphere_position)));
 }
 
 let normal_functions = [

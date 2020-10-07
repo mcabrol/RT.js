@@ -92,13 +92,6 @@ function vector_clamp(a, low, high) {
 	]);
 }
 
-function erand() {
-    var min = 0.0;
-	var max = 1.0;
-	var interval = Math.random() * (max - min) + min;
-    return(interval);
-};
-
 function degreeToRadian(degree) {
 	return (degree * Math.PI / 180)
 }
@@ -122,6 +115,5 @@ let vector_functions = [
 	single_clamp,
 	vector_clamp,
 	quadratic,
-	erand,
 	gamma
 ];

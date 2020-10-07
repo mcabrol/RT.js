@@ -29,16 +29,11 @@ function pathtracer() {
 
 	//
 
-	// let sphere = [
-	// 		sphere_position : sphere_position = [0, 0, -10],
-	// 		sphere_direction = [0, 1, 0]
-	// ];
-
 	let sphere_position = [0, 0, -10];
 	let sphere_direction = [0, 1, 0];
-	let sphere_radius = 14;
-	let sphere_emission = [12, 12, 12];
-	let sphere_color = [0.6, 0.7, 0.6];
+	let sphere_radius = 5;
+	let sphere_emission = [10, 10, 10];
+	let sphere_color = [0.25, 0.75, 0.25];
 
 	//--------------//
 	//	Pathtracer  //
@@ -51,8 +46,8 @@ function pathtracer() {
 		//---------------//
 		var ray_depth = 0
 
-		let u1 = 2 * erand();
-		let u2 = 2 * erand();
+		let u1 = 2 * Math.random();
+		let u2 = 2 * Math.random();
 		let dx = (u1 < 1) ? (Math.sqrt(u1) - 1) : (1 - Math.sqrt(2 - u1));
 		let dy = (u2 < 1) ? (Math.sqrt(u2) - 1) : (1 - Math.sqrt(2 - u2));
 		let ab = vector_add(vector_multi_n(cx, (dx + x)), vector_multi_n(cy, (dy + y)));
@@ -65,7 +60,6 @@ function pathtracer() {
 		var ray_blank = [0, 0, 0];
 		var ray_mask = [1, 1, 1];
 		var ray_color = [0, 0, 0];
-		var ray_light = [0, 0, 0];
 
 
 		// Intersect
@@ -76,6 +70,7 @@ function pathtracer() {
 				ray_color = [ray_blank[0], ray_blank[1], ray_blank[2]];
 				break ;
 			}
+
 			// Evalutate
 			let eval = vector_eval(ray_direction, ray_origin, ray_distance);
 			let normal = normal_sphere(eval, sphere_position);
@@ -83,6 +78,7 @@ function pathtracer() {
 			// Light
 			var ray_light = vector_multi(ray_mask, sphere_emission);
 			ray_blank = vector_add(ray_blank, ray_light);
+			ray_mask = vector_add(ray_mask, ray_light);
 
 			// Texture
 			ray_mask = vector_multi(ray_mask, sphere_color);
@@ -90,30 +86,29 @@ function pathtracer() {
 
 			let continue_probability = vector_max(sphere_color);
 			if (4 < ray_depth) {
-				if (erand() >= continue_probability) {
+				if ((Math.random()) >= continue_probability) {
 					ray_color = [ray_blank[0], ray_blank[1], ray_blank[2]];
 					break ;
 				}
 				ray_mask = vector_divide_n(ray_mask, continue_probability);
 			}
 
-			// Reflect specular
+			// Reflect specular_reflect
 			// ray_origin = eval;
 			// ray_direction = specular_reflect(ray_direction, normal);
 			// ray_depth++;
 
-			// Reflect diffuse
+			// Diffuse reflect
 			ray_origin = eval;
-			diffuse_reflect(ray_direction, normal);
+			ray_direction = diffuse_reflect(ray_direction, normal, Math.random(), Math.random());
 			ray_depth++;
 		}
 
 		// Divide by samples
-		accucolor = vector_add(accucolor, vector_divide_n(ray_color, samples));
+		var l = vector_divide_n(ray_color, samples);
+		accucolor = vector_add(accucolor, l);
 	}
 
-	var result = vector_multi_n(vector_clamp(accucolor, 0, 1), 0.2);
-	this.color(gamma(result[0]), gamma(result[1]), gamma(result[2]), 1);
-
-
+	var result = vector_multi_n(vector_clamp(accucolor, 0, 1), 0.25);
+	this.color(gamma(result[0]), gamma(result[1]), gamma(result[2]));
 };
