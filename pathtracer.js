@@ -1,12 +1,13 @@
 function pathtracer() {
-	let x = this.thread.x;
-	let y = this.thread.y;
-	let samples = this.constants.samples;
-	let camera_fov = this.constants.camera_fov;
-	let w_width = this.constants.w_width;
-	let w_height = this.constants.w_height;
-	let distance_max = this.constants.distance_max;
-	let distance_min = this.constants.distance_min;
+	let x_ = this.thread.x;
+	let y_ = this.thread.y;
+	let samples = this.constants.scene[0];
+	let w_width = this.constants.scene[1];
+	let w_height = this.constants.scene[2];
+	let camera_fov = this.constants.scene[3];
+	let distance_max = this.constants.scene[4];
+	let distance_min = this.constants.scene[5];
+	let nb_obj = this.constants.scene[6];
 
 	//----------------//
 	//	Build Camera  //
@@ -14,7 +15,7 @@ function pathtracer() {
 
 	let up = [0, 1, 0];
 	let camera_direction = [0, 0, -1];
-	let camera_position = [0, 0, 10];
+	let camera_position = [0, 0, 0];
 	let half_width = Math.tan(camera_fov);
 	let half_height = (w_width / w_height) * half_width;
 
@@ -27,13 +28,17 @@ function pathtracer() {
 	let cx = vector_divide_n(vector_multi_n(horizontal, 2 * half_height), w_width);
 	let cy = vector_divide_n(vector_multi_n(vertical, 2 * half_width), w_height);
 
-	//
+	// Objects
 
-	let sphere_position = [0, 0, -10];
-	let sphere_direction = [0, 1, 0];
-	let sphere_radius = 5;
-	let sphere_emission = [10, 10, 10];
-	let sphere_color = [0.25, 0.75, 0.25];
+	let x = 0;
+	let y = 1;
+	let z = 2;
+
+	let position = 0;
+	let direction = 1;
+	let color = 2;
+	let emission = 3;
+	let radius = 4;
 
 	//--------------//
 	//	Pathtracer  //
@@ -50,7 +55,7 @@ function pathtracer() {
 		let u2 = 2 * Math.random();
 		let dx = (u1 < 1) ? (Math.sqrt(u1) - 1) : (1 - Math.sqrt(2 - u1));
 		let dy = (u2 < 1) ? (Math.sqrt(u2) - 1) : (1 - Math.sqrt(2 - u2));
-		let ab = vector_add(vector_multi_n(cx, (dx + x)), vector_multi_n(cy, (dy + y)));
+		let ab = vector_add(vector_multi_n(cx, (dx + x_)), vector_multi_n(cy, (dy + y_)));
 		let ray_direction = vector_normalize(vector_substract(vector_add(point, ab), camera_position));
 		let ray_origin = camera_position;
 
@@ -65,11 +70,30 @@ function pathtracer() {
 		// Intersect
 
 		while (true) {
-			let ray_distance = intersect_sphere(ray_direction, ray_origin, sphere_position, sphere_radius);
-			if (ray_distance >= distance_min && ray_distance < distance_max) {
+			var hit = false;
+			var ray_distance = distance_max;
+			var id = 1;
+			for (var j = 0; j < nb_obj; j++) {
+				var current_position = [this.constants.obj[j][position][x], this.constants.obj[j][position][y], this.constants.obj[j][position][z]];
+				var current_radius = this.constants.obj[j][radius][0];
+				var distance = intersect_sphere(ray_direction, ray_origin, current_position, current_radius);
+				if (distance >= distance_min && distance < ray_distance) {
+					ray_distance = distance;
+					id = j;
+					hit = true;
+				}
+			}
+
+			if (hit == false) {
 				ray_color = [ray_blank[0], ray_blank[1], ray_blank[2]];
 				break ;
 			}
+
+			let sphere_position = [this.constants.obj[id][position][x], this.constants.obj[id][position][y], this.constants.obj[id][position][z]];
+			let sphere_direction = [this.constants.obj[id][direction][x], this.constants.obj[id][direction][y], this.constants.obj[id][direction][z]];
+			let sphere_emission = [this.constants.obj[id][emission][x], this.constants.obj[id][emission][y], this.constants.obj[id][emission][z]];
+			let sphere_color = [this.constants.obj[id][color][x], this.constants.obj[id][color][y], this.constants.obj[id][color][z]];
+			let sphere_radius = this.constants.obj[id][radius][0];
 
 			// Evalutate
 			let eval = vector_eval(ray_direction, ray_origin, ray_distance);
@@ -85,8 +109,8 @@ function pathtracer() {
 
 
 			let continue_probability = vector_max(sphere_color);
-			if (4 < ray_depth) {
-				if ((Math.random()) >= continue_probability) {
+			if (ray_depth > 4) {
+				if (Math.random() >= continue_probability) {
 					ray_color = [ray_blank[0], ray_blank[1], ray_blank[2]];
 					break ;
 				}
@@ -110,5 +134,5 @@ function pathtracer() {
 	}
 
 	var result = vector_multi_n(vector_clamp(accucolor, 0, 1), 0.25);
-	this.color(gamma(result[0]), gamma(result[1]), gamma(result[2]));
+	this.color(result[0], result[1], result[2]);
 };

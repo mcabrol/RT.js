@@ -13,6 +13,7 @@ function intersect_sphere(ray_direction, ray_origin, sphere_position, sphere_rad
 	var oc = vector_substract(ray_origin, sphere_position);
 	var k = [vector_dot(ray_direction, ray_direction), 2 * vector_dot(oc, ray_direction), vector_dot(oc, oc) - sphere_radius * sphere_radius];
 	var tmin = quadratic(k[0], k[1], k[2]);
+
 	return (tmin);
 }
 

@@ -11,17 +11,18 @@
 		body, html {height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden;}
 		.bg-black {background-color: black;}
 		.text-black {color: black}
+		.text-white {color: white}
 	</style>
     <title>RT.js</title>
   </head>
   <body>
 
-	<div class="fixed-top p-3 text-black">
+	<div class="fixed-top p-3 text-white">
 			<h1 class="m-0" id="size"></h1>
 			<h3 class="m-0" id="fps"></h3>
 	</div>
 
-	<div class="fixed-bottom text-right p-3 text-black">
+	<div class="fixed-bottom text-right p-3 text-white">
 			<button class="btn" onclick="toggleAnimation()"><h1 class="m-0" id="statusAnimation">Start</h1></button>
 	</div>
 
@@ -52,6 +53,66 @@
 	let height = window.innerHeight;
 	let animation = false;
 
+	// sample
+	// [0] width
+	// [1] height
+	// [2] width
+	// [3] fov
+	// [4] distance_max
+	// [5] distance_min
+	// [6] nb_obj
+
+	let scene = [];
+	scene[0] = 4;
+	scene[1] = width;
+	scene[2] = height;
+	scene[3] = degreeToRadian(40);
+	scene[4] = 1e20;
+	scene[5] = 0.01;
+	scene[6] = 3;
+
+	// type
+	// [0] position
+	// [1] direction
+	// [2] color
+	// [3] emission
+
+	let position = 0;
+	let direction = 1;
+	let color = 2;
+	let emission = 3;
+	let radius = 4;
+
+	let obj = new Array(2);
+
+	obj[0] = new Array(5);
+	obj[0][position] = new Array(3);
+	obj[0][direction] = new Array(3);
+	obj[0][color] = new Array(3);
+	obj[0][emission] = new Array(3);
+	obj[0][radius] = new Array(1);
+
+	obj[1] = new Array(5);
+	obj[1][position] = new Array(3);
+	obj[1][direction] = new Array(3);
+	obj[1][color] = new Array(3);
+	obj[1][emission] = new Array(3);
+	obj[1][radius] = new Array(1);
+
+	// Sphere 1
+	obj[0][position] = [-4, 0, -20];
+	obj[0][direction] = [0, 0, 0];
+	obj[0][color] = [0.25, 0.25, 0.40];
+	obj[0][emission] = [0, 50, 50];
+	obj[0][radius][0] = 6;
+
+	// Sphere 2
+	obj[1][position] = [0, 0, -20];
+	obj[1][direction] = [0, 1, 0];
+	obj[1][color] = [0.25, 0.75, 0.25];
+	obj[1][emission] = [50, 2, 0];
+	obj[1][radius][0] = 5;
+
 
 	function render() {
 		var width = window.innerWidth;
@@ -72,17 +133,10 @@
 
 		const kernel = gpu.createKernel(pathtracer)
 		  // .setDebug(true)
-		  .setConstants({
-			  "samples": 8,
-			  "w_width": width,
-			  "w_height": height,
-			  "camera_fov": degreeToRadian(60),
-			  "distance_max": 1e20,
-			  "distance_min": 0.01
-		  })
+		  .setConstants({ "scene": scene, "obj": obj })
 		  .setOutput([width, height])
 		  .setGraphical(true)
-		  .setLoopMaxIterations(1000);
+		  .setLoopMaxIterations(100000);
 
 		 kernel();
 		 console.log(gpu);
