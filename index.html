@@ -21,6 +21,9 @@
 			<h1 class="m-0" id="size"></h1>
 			<h3 class="m-0" id="fps"></h3>
 	</div>
+	<div class="fixed-top p-3 text-white text-right">
+			<h1 class="m-0" id="size"><span id="samples"></span> samples</h1>
+	</div>
 
 	<div class="fixed-bottom text-right p-3 text-white">
 			<button class="btn" onclick="toggleAnimation()"><h1 class="m-0" id="statusAnimation">Start</h1></button>
@@ -63,55 +66,13 @@
 	// [6] nb_obj
 
 	let scene = [];
-	scene[0] = 4;
+	scene[0] = 50;
 	scene[1] = width;
 	scene[2] = height;
-	scene[3] = degreeToRadian(40);
+	scene[3] = degreeToRadian(20);
 	scene[4] = 1e20;
 	scene[5] = 0.01;
 	scene[6] = 3;
-
-	// type
-	// [0] position
-	// [1] direction
-	// [2] color
-	// [3] emission
-
-	let position = 0;
-	let direction = 1;
-	let color = 2;
-	let emission = 3;
-	let radius = 4;
-
-	let obj = new Array(2);
-
-	obj[0] = new Array(5);
-	obj[0][position] = new Array(3);
-	obj[0][direction] = new Array(3);
-	obj[0][color] = new Array(3);
-	obj[0][emission] = new Array(3);
-	obj[0][radius] = new Array(1);
-
-	obj[1] = new Array(5);
-	obj[1][position] = new Array(3);
-	obj[1][direction] = new Array(3);
-	obj[1][color] = new Array(3);
-	obj[1][emission] = new Array(3);
-	obj[1][radius] = new Array(1);
-
-	// Sphere 1
-	obj[0][position] = [-4, 0, -20];
-	obj[0][direction] = [0, 0, 0];
-	obj[0][color] = [0.25, 0.25, 0.40];
-	obj[0][emission] = [0, 50, 50];
-	obj[0][radius][0] = 6;
-
-	// Sphere 2
-	obj[1][position] = [0, 0, -20];
-	obj[1][direction] = [0, 1, 0];
-	obj[1][color] = [0.25, 0.75, 0.25];
-	obj[1][emission] = [50, 2, 0];
-	obj[1][radius][0] = 5;
 
 
 	function render() {
@@ -120,6 +81,9 @@
 
 		$("#size").empty();
 		$("#size").append(width + "x" + height);
+
+		$("#samples").empty();
+		$("#samples").append(scene[0]);
 
 		const gpu = new GPU({
 			mode: "gpu",
@@ -133,7 +97,7 @@
 
 		const kernel = gpu.createKernel(pathtracer)
 		  // .setDebug(true)
-		  .setConstants({ "scene": scene, "obj": obj })
+		  .setConstants({ "scene": scene })
 		  .setOutput([width, height])
 		  .setGraphical(true)
 		  .setLoopMaxIterations(100000);

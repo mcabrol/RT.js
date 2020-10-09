@@ -44,8 +44,8 @@ function quadratic(k1, k2, k3) {
 	var tmin = 1e20;
 	var des = k2 * k2 - 4 * k1 * k3;
 	if (des >= 0) {
-		var t1 = (-k2 + sqrt(des)) / (2 * k1);
-		var t2 = (-k2 - sqrt(des)) / (2 * k1);
+		var t1 = (-k2 + Math.sqrt(des)) / (2 * k1);
+		var t2 = (-k2 - Math.sqrt(des)) / (2 * k1);
 		if (t1 >= 0.01 && t1 < 1e20 && t1 < tmin) {
 			tmin = t1;
 		}
