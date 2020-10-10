@@ -6,12 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="dist/bootstrap.min.css">
 	<style>
 		body, html {height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden;}
 		.bg-black {background-color: black;}
 		.text-black {color: black}
 		.text-white {color: white}
+		#samples {width: 80px; text-align: right;}
+		input {color: white; background-color: transparent; border: 0}
 	</style>
     <title>RT.js</title>
   </head>
@@ -34,20 +36,21 @@
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-	<script   src="https://code.jquery.com/jquery-3.5.1.js"   integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="   crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+	<script src="dist/jquery-3.5.1.js"></script>
 
+	<!-- Sources -->
 	<script src="dist/gpu-browser.js"></script>
 	<script src="vector.js"></script>
 	<script src="intersect.js"></script>
 	<script src="normal.js"></script>
 	<script src="reflect.js"></script>
+	<script src="ray.js"></script>
 	<script src="pathtracer.js"></script>
 	<script src="utils.js"></script>
 
 	<script>
-
+	var samples = 1000;
+	var fov = 30;
 	const fpsNumber = $("#fps");
 	let lastCalledTime = Date.now();
   	let fps;
@@ -56,17 +59,8 @@
 	let height = window.innerHeight;
 	let animation = false;
 
-	// sample
-	// [0] width
-	// [1] height
-	// [2] width
-	// [3] fov
-	// [4] distance_max
-	// [5] distance_min
-	// [6] nb_obj
-
 	let scene = [];
-	scene[0] = 50;
+	scene[0] = 100;
 	scene[1] = width;
 	scene[2] = height;
 	scene[3] = degreeToRadian(20);
@@ -74,8 +68,7 @@
 	scene[5] = 0.01;
 	scene[6] = 3;
 
-
-	function render() {
+	function render(samples, fov) {
 		var width = window.innerWidth;
 		var height = window.innerHeight;
 
@@ -83,7 +76,7 @@
 		$("#size").append(width + "x" + height);
 
 		$("#samples").empty();
-		$("#samples").append(scene[0]);
+		$("#samples").append(samples);
 
 		const gpu = new GPU({
 			mode: "gpu",
@@ -94,13 +87,18 @@
 		addFunctions(gpu, intersect_functions);
 		addFunctions(gpu, normal_functions);
 		addFunctions(gpu, reflect_functions);
+		addFunctions(gpu, ray_functions);
 
 		const kernel = gpu.createKernel(pathtracer)
 		  // .setDebug(true)
-		  .setConstants({ "scene": scene })
+		  .setConstants({ "scene": scene,
+		  				  "width": width,
+						  "height": height,
+					  	  "samples": samples,
+					  	  "fov": degreeToRadian(fov)})
 		  .setOutput([width, height])
 		  .setGraphical(true)
-		  .setLoopMaxIterations(100000);
+		  .setLoopMaxIterations(10000);
 
 		 kernel();
 		 console.log(gpu);
@@ -109,15 +107,20 @@
 	}
 
 	function draw() {
-	  render();
 	  if (animation) {
-		  requestAnimationFrame(draw);
+		  samples++;
+		  var request = requestAnimationFrame(draw);
 		  framePerSecond();
-	  }
+	  	}
+		else {
+			cancelAnimationFrame(request);
+		}
+		render(samples, fov);
 	}
 
 	$(document).ready(function(){
-	    requestAnimationFrame(draw);
+
+		requestAnimationFrame(draw);
 		framePerSecond();
 
 		$(window).resize(function(){
@@ -125,11 +128,20 @@
 			framePerSecond();
 		});
 
+		$('#renderZone').mousedown(function(event) {
+    		switch (event.which) {
+		        case 1:
+		            fov--;
+					requestAnimationFrame(draw);
+		            break;
+		        case 2:
+		            fov++;
+					requestAnimationFrame(draw);
+		            break;
+    		}
+		});
+
 	});
-
-
-
-
 
 	</script>
 

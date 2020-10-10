@@ -23,9 +23,11 @@ function addFunctions(gpu, f){
 }
 
 function framePerSecond() {
+	var render_time = Date.now() - lastCalledTime;
 	delta = (Date.now() - lastCalledTime) / 1000;
 	lastCalledTime = Date.now();
 	fps = 1 / delta;
 	fpsNumber.empty();
 	fpsNumber.append("fps " + fps.toFixed(0));
+	fpsNumber.append(" / time " + render_time + "sec");
 }

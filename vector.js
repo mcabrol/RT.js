@@ -96,8 +96,14 @@ function degreeToRadian(degree) {
 	return (degree * Math.PI / 180)
 }
 
-function gamma(x) {
-	return (single_clamp(255 * Math.pow(x, 1 / 2.2), 0, 255));
+function gamma(a) {
+	return ([single_clamp(255 * Math.pow(a[0], 1 / 2.2), 0, 255),
+			 single_clamp(255 * Math.pow(a[1], 1 / 2.2), 0, 255),
+			 single_clamp(255 * Math.pow(a[2], 1 / 2.2), 0, 255)]);
+}
+
+function rgb(x) {
+	return (x / 255);
 }
 
 let vector_functions = [
@@ -115,5 +121,6 @@ let vector_functions = [
 	single_clamp,
 	vector_clamp,
 	quadratic,
-	gamma
+	gamma,
+	rgb
 ];
